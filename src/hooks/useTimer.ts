@@ -1,5 +1,10 @@
+import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import {
+    selectIsAllowed,
+    selectUserID,
+} from "../redux/pushNotifications/selectors";
 import { useAppDispatch } from "../redux/store";
 import {
     selectLongBreakTime,
@@ -29,6 +34,13 @@ export const useTimer = () => {
     const workTime = useSelector(selectWorkTime);
     const shortBreakTime = useSelector(selectShortBreakTime);
     const longBreakTime = useSelector(selectLongBreakTime);
+    const isPushNotificationsAllowed = useSelector(selectIsAllowed);
+    const userID = useSelector(selectUserID);
+
+    enum notificationMessages {
+        work = "Time to work 👨‍💻",
+        break = "Time to rest ☕",
+    }
 
     const calcRemainingTimeInitValue = () => {
         switch (stage) {
@@ -49,6 +61,20 @@ export const useTimer = () => {
     const dispatch = useAppDispatch();
     const interval = 1000;
 
+    const createNotification = (
+        message: "Time to work 👨‍💻" | "Time to rest ☕"
+    ) => {
+        const url = "https://onesignal.com/api/v1/notifications";
+        const appID = "91479291-8fb6-42b0-8738-afa711de76ae";
+        axios.post(url, {
+            include_player_ids: ["8a39a233-ba7e-4e02-bd3b-0566b7c272b0"],
+            app_id: appID,
+            contents: {
+                en: message,
+            },
+        });
+    };
+
     const step = () => {
         const drift = Date.now() - expected.current;
         console.log("expected ===> ", expected);
@@ -59,8 +85,15 @@ export const useTimer = () => {
                 Number(String(drift)[0] + "000") - interval;
             if (remainingTime.current <= 0) {
                 clearTimeout(timeoutID.current);
-                dispatch(nextStage());
                 setStatus("idle");
+                if (isPushNotificationsAllowed) {
+                    if (stage === "work") {
+                        createNotification(notificationMessages.break);
+                    } else {
+                        createNotification(notificationMessages.work);
+                    }
+                }
+                dispatch(nextStage());
                 return;
             }
             expected.current += drift + (interval - (drift % 1000));
@@ -70,8 +103,15 @@ export const useTimer = () => {
         remainingTime.current -= 1000;
         if (remainingTime.current === 0) {
             clearTimeout(timeoutID.current);
-            dispatch(nextStage());
             setStatus("idle");
+            if (isPushNotificationsAllowed) {
+                if (stage === "work") {
+                    createNotification(notificationMessages.break);
+                } else {
+                    createNotification(notificationMessages.work);
+                }
+            }
+            dispatch(nextStage());
             return;
         }
         switch (stage) {

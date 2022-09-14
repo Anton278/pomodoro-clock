@@ -1,12 +1,22 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Login } from "./components/Login";
 import { TimerPage } from "./pages/TimerPage";
 import { Signup } from "./components/Signup";
 import { SettingsPage } from "./pages/SettingsPage";
+import OneSignalReact from "react-onesignal";
+import { useAppDispatch } from "./redux/store";
+import { registerPush } from "./redux/pushNotifications/thunks";
 
 const App: FC = () => {
+    const dispatch = useAppDispatch();
+    console.log(OneSignalReact);
+
+    useEffect(() => {
+        dispatch(registerPush());
+    }, []);
+
     return (
         <Routes>
             <Route path="/" element={<Header />}>
