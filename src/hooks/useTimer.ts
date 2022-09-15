@@ -26,6 +26,7 @@ import {
 
 import { calcPercentRemainingTime } from "../utils/calcPercentRemainingTime";
 import { normalizeMilliseconds } from "../utils/normalizeMilliseconds";
+import { selectAudioSrc } from "../redux/audio/selectors";
 
 export const useTimer = () => {
     const INTERVAL = 1000;
@@ -41,6 +42,9 @@ export const useTimer = () => {
     const longBreakTime = useSelector(selectLongBreakTime);
     const isPushNotificationsAllowed = useSelector(selectIsAllowed);
     const userID = useSelector(selectUserID);
+    const audioSrc = useSelector(selectAudioSrc);
+
+    const audio = useRef(new Audio(audioSrc));
 
     const getStageInitTime = () => {
         switch (stage) {
@@ -83,6 +87,7 @@ export const useTimer = () => {
 
         const onFinishHandler = () => {
             clearTimeout(timeoutID.current);
+            audio.current.play();
             setStatus("idle");
             if (isPushNotificationsAllowed) {
                 if (stage === "work") {

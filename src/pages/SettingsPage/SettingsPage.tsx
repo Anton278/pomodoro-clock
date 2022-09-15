@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useRef } from "react";
 import { sliderMarks } from "./sliderMarks";
 import {
     Box,
@@ -17,11 +17,43 @@ import {
     setTotalSessionsAmount,
 } from "../../redux/timer/slice";
 import { useAppDispatch } from "../../redux/store";
-import { normalizeMinutes } from "../../utils/normalizeMinutes";
+import { useSelector } from "react-redux";
+import {
+    selectLongBreakTime,
+    selectShortBreakTime,
+    selectTotalSessionsAmount,
+    selectWorkTime,
+} from "../../redux/timer/selectors";
+
+import { selectAudioSrc } from "../../redux/audio/selectors";
+import { setAudioSrc } from "../../redux/audio/slice";
+
+interface IAudio {
+    path: string;
+    name: string;
+}
 
 const SettingsPage: FC = () => {
-    const { workTime, shortBreak, longBreak, rounds } = sliderMarks;
     const dispatch = useAppDispatch();
+    const workTime = useSelector(selectWorkTime);
+    const shortBreakTime = useSelector(selectShortBreakTime);
+    const longBreakTime = useSelector(selectLongBreakTime);
+    const totalSessionsAmount = useSelector(selectTotalSessionsAmount);
+    const audioSrc = useSelector(selectAudioSrc);
+    const audio = useRef<HTMLAudioElement>(new Audio(audioSrc));
+
+    const audios: IAudio[] = [
+        { path: "/audios/long.mp3", name: "Long" },
+        { path: "/audios/retro-alarm.mp3", name: "Retro Alarm" },
+        { path: "/audios/short.mp3", name: "Short" },
+    ];
+
+    const onSelectChange = (e: any) => {
+        audio.current.pause();
+        dispatch(setAudioSrc(e.target.value));
+        audio.current = new Audio(e.target.value);
+        audio.current.play();
+    };
 
     return (
         <Container maxWidth="xs">
@@ -29,80 +61,73 @@ const SettingsPage: FC = () => {
                 <Typography>Work time</Typography>
                 <Slider
                     aria-label="Work time"
-                    defaultValue={25}
+                    value={workTime}
                     step={1}
                     min={5}
                     max={60}
-                    marks={workTime}
+                    marks={sliderMarks.workTime}
                     valueLabelDisplay="auto"
-                    onChangeCommitted={(_, value) => {
-                        if (typeof value === "number") {
-                            dispatch(setWorkTime(value));
-                        }
-                    }}
+                    onChange={(e: any) => dispatch(setWorkTime(e.target.value))}
                 />
             </Box>
             <Box mb="2rem">
                 <Typography>Short break duration</Typography>
                 <Slider
                     aria-label="Short break duration"
-                    defaultValue={5}
+                    value={shortBreakTime}
                     step={1}
                     min={1}
                     max={30}
-                    marks={shortBreak}
+                    marks={sliderMarks.shortBreak}
                     valueLabelDisplay="auto"
-                    onChangeCommitted={(_, value) => {
-                        if (typeof value === "number") {
-                            dispatch(setShortBreakTime(value));
-                        }
-                    }}
+                    onChange={(e: any) =>
+                        dispatch(setShortBreakTime(e.target.value))
+                    }
                 />
             </Box>
             <Box mb="2rem">
                 <Typography>Long break duration</Typography>
                 <Slider
                     aria-label="Long break duration"
-                    defaultValue={20}
+                    value={longBreakTime}
                     step={1}
                     min={1}
                     max={45}
-                    marks={longBreak}
+                    marks={sliderMarks.longBreak}
                     valueLabelDisplay="auto"
-                    onChangeCommitted={(_, value) => {
-                        if (typeof value === "number") {
-                            dispatch(setLongBreakTime(value));
-                        }
-                    }}
+                    onChange={(e: any) =>
+                        dispatch(setLongBreakTime(e.target.value))
+                    }
                 />
             </Box>
             <Box mb="2rem">
                 <Typography>Sessions amount</Typography>
                 <Slider
-                    aria-label="Rounds"
-                    defaultValue={4}
+                    aria-label="Sessions amount"
+                    value={totalSessionsAmount}
                     step={1}
                     min={2}
                     max={15}
-                    marks={rounds}
+                    marks={sliderMarks.rounds}
                     valueLabelDisplay="auto"
-                    onChangeCommitted={(_, value) => {
-                        if (typeof value === "number") {
-                            dispatch(setTotalSessionsAmount(value));
-                        }
-                    }}
+                    onChange={(e: any) =>
+                        dispatch(setTotalSessionsAmount(e.target.value))
+                    }
                 />
             </Box>
             <Box mb="1rem">
                 <FormControl fullWidth>
-                    <InputLabel id="notification-sound">
-                        Notification sound
-                    </InputLabel>
+                    <InputLabel>Notification sound</InputLabel>
                     <Select
-                        labelId="notification-sound"
                         label="notification-sound"
+                        value={audioSrc}
+                        onChange={onSelectChange}
                     >
-                        <MenuItem value="melody">Melody</MenuItem>
+                        {audios.map((audio: IAudio) => (
+                            <MenuItem value={audio.path} key={audio.name}>
+                                {audio.name}
+                            </MenuItem>
+                        ))}
                     </Select>
                 </FormControl>
             </Box>
