@@ -7,13 +7,12 @@ const initialState: InitState = {
     workRemainingTime: "25 : 00",
     shortBreakTime: 5,
     shortBreakRemainingTime: "05 : 00",
-    totalSessionsAmount: 4,
-    sessionCounter: 1,
     longBreakTime: 20,
     longBreakRemainingTime: "20 : 00",
+    totalSessionsAmount: 4,
+    sessionCounter: 1,
     stage: "work",
     isOtherPagesLocked: false,
-    status: "idle",
     percentRemainingTime: 100,
 };
 
@@ -35,18 +34,17 @@ const timer = createSlice({
         setShortBreakRemainingTime(state, action: PayloadAction<string>) {
             state.shortBreakRemainingTime = action.payload;
         },
+        setLongBreakTime(state, action: PayloadAction<number>) {
+            state.longBreakTime = action.payload;
+            state.longBreakRemainingTime = normalizeMinutes(action.payload);
+        },
+        setLongBreakRemainingTime(state, action: PayloadAction<string>) {
+            state.longBreakRemainingTime = action.payload;
+        },
         setTotalSessionsAmount(state, action: PayloadAction<number>) {
             state.totalSessionsAmount = action.payload;
         },
         nextStage(state) {
-            state.percentRemainingTime = 100;
-            state.workRemainingTime = normalizeMinutes(state.workTime);
-            state.shortBreakRemainingTime = normalizeMinutes(
-                state.shortBreakTime
-            );
-            state.longBreakRemainingTime = normalizeMinutes(
-                state.longBreakTime
-            );
             if (state.stage === "work") {
                 if (state.sessionCounter === state.totalSessionsAmount) {
                     state.stage = "long-break";
@@ -61,15 +59,18 @@ const timer = createSlice({
                 state.sessionCounter = 1;
             }
         },
-        setLongBreakTime(state, action: PayloadAction<number>) {
-            state.longBreakTime = action.payload;
-            state.longBreakRemainingTime = normalizeMinutes(action.payload);
-        },
-        setLongBreakRemainingTime(state, action: PayloadAction<string>) {
-            state.longBreakRemainingTime = action.payload;
-        },
         setIsOtherPagesLocked(state, action: PayloadAction<boolean>) {
             state.isOtherPagesLocked = action.payload;
+        },
+        setInitValues(state) {
+            state.workRemainingTime = normalizeMinutes(state.workTime);
+            state.shortBreakRemainingTime = normalizeMinutes(
+                state.shortBreakTime
+            );
+            state.longBreakRemainingTime = normalizeMinutes(
+                state.longBreakTime
+            );
+            state.percentRemainingTime = 100;
         },
         setPercentRemainingTime(state, action: PayloadAction<number>) {
             state.percentRemainingTime = action.payload;
@@ -87,6 +88,7 @@ export const {
     setLongBreakRemainingTime,
     setIsOtherPagesLocked,
     nextStage,
+    setInitValues,
     setPercentRemainingTime,
 } = timer.actions;
 

@@ -9,6 +9,5 @@ export interface InitState {
     longBreakRemainingTime: string;
     stage: "work" | "short-break" | "long-break";
     isOtherPagesLocked: boolean;
-    status: "work" | "idle" | "paused";
     percentRemainingTime: number;
 }
